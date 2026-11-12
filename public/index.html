@@ -199,7 +199,7 @@ async function form(title,fs,v={}){
  return r.isConfirmed?{...v,...r.value}:null;
 }
 async function fkeg(id){const v=D.kegiatan.find(k=>k.id===id)||{status:'Aktif'};
- save('Kegiatan',await form(id?'Edit Kegiatan':'Tambah Kegiatan',[{k:'nama',l:'Nama Kegiatan',r:1},{k:'tanggal',l:'Tanggal',t:'date',r:1},{k:'lokasi',l:'Lokasi',r:1},{k:'penyelenggara',l:'Penyelenggara'},{k:'status',l:'Status',o:['Aktif','Selesai']},{k:'ttd_nama',l:'Nama Penandatangan Sertifikat'},{k:'ttd_jabatan',l:'Jabatan Penandatangan'},{k:'template_url',l:'URL Gambar Template Sertifikat (opsional, dari GitHub)'}],v))}
+ save('Kegiatan',await form(id?'Edit Kegiatan':'Tambah Kegiatan',[{k:'nama',l:'Nama Kegiatan',r:1},{k:'tanggal',l:'Tanggal',t:'date',r:1},{k:'lokasi',l:'Lokasi',r:1},{k:'penyelenggara',l:'Penyelenggara'},{k:'status',l:'Status',o:['Aktif','Selesai']},{k:'ttd_nama',l:'Nama Penandatangan Sertifikat'},{k:'ttd_nip',l:'NIP Penandatangan (opsional)'},{k:'ttd_jabatan',l:'Jabatan Penandatangan'},{k:'template_url',l:'URL Gambar Template Sertifikat (opsional, dari GitHub)'}],v))}
 async function fpes(id){const v=D.peserta.find(p=>p.id===id)||{};
  save('Peserta',await form(id?'Edit Peserta':'Tambah Peserta',[{k:'nama',l:'Nama Lengkap (beserta gelar)',r:1},{k:'nip',l:'NIP / ID Peserta',r:1},{k:'instansi',l:'Instansi / Sekolah'},{k:'email',l:'Email',t:'email'}],v))}
 async function fusr(row){const v=D.users.find(u=>u._row===row)||{role:'panitia'};
@@ -228,14 +228,14 @@ function csv(){const k=D.kegiatan.find(x=>x.id===SK);if(!k)return;
 
 /* ===== Sertifikat ===== */
 /* Posisi teks di atas template (persen dari lebar/tinggi kertas; titik tengah elemen). Sesuaikan dengan desain Anda. */
-const POS={no:{x:50,y:27.5},nama:{x:50,y:38.5},sub:{x:50,y:45},role:{x:50,y:53.5},keg:{x:50,y:61},tgl:{x:50,y:67.5},qr:{x:14,y:79},ttd:{x:72,y:77}};
+const POS={no:{x:50,y:27.5},nama:{x:50,y:38.5},sub:{x:50,y:45},role:{x:50,y:53.5},keg:{x:50,y:61},tgl:{x:50,y:67.5},qr:{x:14,y:79},ttd:{x:72,y:76}};
 function cert(k,p,no){
  const d=document.createElement('div');new QRCode(d,{text:`${URL_}?verify=${encodeURIComponent(no)}`,width:220,height:220,correctLevel:QRCode.CorrectLevel.M});
  const q=d.querySelector('canvas').toDataURL();
  if(k.template_url){const at=(n,h,c='')=>`<div class="a ${c}" style="left:${POS[n].x}%;top:${POS[n].y}%">${h}</div>`;
-  return `<div class="cert tpl"><img class=bgi src="${e(k.template_url)}">${at('no','Nomor: '+e(no),'no')}${at('nama',e(p.nama),'nm')}${at('sub',(p.nip?'NIP. '+e(p.nip)+' \u{B7} ':'')+e(p.instansi))}${at('role','Peserta','rl')}${at('keg','<span style="font-size:15px;font-weight:400;color:#334155">dalam kegiatan</span><br>'+e(k.nama),'kg')}${at('tgl',tgl(k.tanggal)+' \u{B7} '+e(k.lokasi))}${at('qr',`<img src="${q}"><small>Pindai untuk verifikasi</small>`,'qb')}${at('ttd',`${e(k.lokasi)}, ${tgl(k.tanggal)}<br>${e(k.ttd_jabatan)}<br><br><br><b><u>${e(k.ttd_nama)}</u></b>`,'sg')}</div>`}
+  return `<div class="cert tpl"><img class=bgi src="${e(k.template_url)}">${at('no','Nomor: '+e(no),'no')}${at('nama',e(p.nama),'nm')}${at('sub',(p.nip?'NIP. '+e(p.nip)+' \u{B7} ':'')+e(p.instansi))}${at('role','Peserta','rl')}${at('keg','<span style="font-size:15px;font-weight:400;color:#334155">dalam kegiatan</span><br>'+e(k.nama),'kg')}${at('tgl',tgl(k.tanggal)+' \u{B7} '+e(k.lokasi))}${at('qr',`<img src="${q}"><small>Pindai untuk verifikasi</small>`,'qb')}${at('ttd',`${e(k.lokasi)}, ${tgl(k.tanggal)}<br>${e(k.ttd_jabatan)}<br><br><br><b><u>${e(k.ttd_nama)}</u></b>${k.ttd_nip?'<br>NIP. '+e(k.ttd_nip):''}`,'sg')}</div>`}
  return `<div class=cert><div class=cb><div class=ct>SERTIFIKAT</div><div class=cs>Nomor: ${e(no)}</div><p>Diberikan kepada</p><h1>${e(p.nama)}</h1><p>${p.nip?'NIP. '+e(p.nip)+' \u{B7} ':''}${e(p.instansi)}</p><p>atas partisipasinya sebagai <b>Peserta</b> dalam kegiatan</p><h2>${e(k.nama)}</h2><p>${tgl(k.tanggal)} \u{B7} ${e(k.lokasi)}</p>
- <div class=cf><div><img src="${q}"><small>Pindai untuk verifikasi keaslian</small></div><div><p>${e(k.lokasi)}, ${tgl(k.tanggal)}</p><p>${e(k.ttd_jabatan)}</p><br><br><b><u>${e(k.ttd_nama)}</u></b></div></div></div></div>`;
+ <div class=cf><div><img src="${q}"><small>Pindai untuk verifikasi keaslian</small></div><div><p>${e(k.lokasi)}, ${tgl(k.tanggal)}</p><p>${e(k.ttd_jabatan)}</p><br><br><b><u>${e(k.ttd_nama)}</u></b>${k.ttd_nip?'<br>NIP. '+e(k.ttd_nip):''}</div></div></div></div>`;
 }
 async function cetak(ids){
  const k=D.kegiatan.find(x=>x.id===SK);if(!k||!ids.length)return Swal.fire('Info','Belum ada peserta hadir.','info');
