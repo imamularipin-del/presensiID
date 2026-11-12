@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#1e3a8a"><title>PaserID</title>
+<html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#1e3a8a"><title>Presensi Workshop Guru</title>
 <link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="icon" href="/favicon.ico" sizes="any"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="manifest" href="/site.webmanifest">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -171,7 +171,7 @@ async function verifyView(){
 const NAV=[['dash','Dashboard','\u{1F4CA}'],['keg','Kegiatan','\u{1F5D3}\u{FE0F}'],['pes','Peserta','\u{1F469}\u{200D}\u{1F3EB}'],['pre','Presensi','\u{2705}'],['ser','Sertifikat','\u{1F393}'],['usr','Pengguna','\u{1F464}','admin']];
 function render(){
  const nav=NAV.filter(n=>!n[3]||n[3]===U.role).map(n=>`<a class="${V==n[0]?'on':''} ${n[0]=='usr'?'x':''}" onclick="V='${n[0]}';render()"><span>${n[2]}</span>${n[1]}</a>`).join('');
- app.innerHTML=`<div class=app><aside><div class=logo>\u{1F393} PaserID</div>${nav}<div class=sp></div><a class=x onclick=pwd()><span>\u{1F511}</span>Password</a><a class=x onclick=logout()><span>\u{1F6AA}</span>Keluar</a></aside><main><div class=top><h2>${NAV.find(n=>n[0]==V)[1]}</h2><span class=chip>${e(U.nama)} \u{B7} ${U.role}</span><button class=av onclick=menu()>${e((U.nama||'?')[0]).toUpperCase()}</button></div>${VIEWS[V]()}</main>${ADD[V]?`<button class=fab onclick="${ADD[V]}">\u{FF0B}</button>`:''}</div>`;
+ app.innerHTML=`<div class=app><aside><div class=logo>\u{1F393} Presensi Workshop</div>${nav}<div class=sp></div><a class=x onclick=pwd()><span>\u{1F511}</span>Password</a><a class=x onclick=logout()><span>\u{1F6AA}</span>Keluar</a></aside><main><div class=top><h2>${NAV.find(n=>n[0]==V)[1]}</h2><span class=chip>${e(U.nama)} \u{B7} ${U.role}</span><button class=av onclick=menu()>${e((U.nama||'?')[0]).toUpperCase()}</button></div>${VIEWS[V]()}</main>${ADD[V]?`<button class=fab onclick="${ADD[V]}">\u{FF0B}</button>`:''}</div>`;
  document.querySelectorAll('table').forEach(t=>{const h=[...t.querySelectorAll('th')].map(x=>x.textContent);t.querySelectorAll('tbody tr').forEach(w=>[...w.children].forEach((c,i)=>c.dataset.l=h[i]||''))});
 }
 const ADD={keg:'fkeg()',pes:'fpes()',pre:'manual()',usr:'fusr()'};
@@ -229,12 +229,12 @@ function csv(){const k=D.kegiatan.find(x=>x.id===SK);if(!k)return;
 
 /* ===== Sertifikat ===== */
 /* Posisi teks di atas template (persen dari lebar/tinggi kertas; titik tengah elemen). Sesuaikan dengan desain Anda. */
-const POS={no:{x:50,y:27.5},nama:{x:50,y:38.5},sub:{x:50,y:45},role:{x:50,y:53.5},keg:{x:50,y:61},tgl:{x:50,y:67.5},qr:{x:14,y:79},ttd:{x:72,y:76}};
+const POS={no:{x:50,y:27.5},nama:{x:50,y:38.5},role:{x:50,y:53.5},keg:{x:50,y:61},tgl:{x:50,y:67.5},qr:{x:14,y:79},ttd:{x:72,y:76}};
 function cert(k,p,no){
  const d=document.createElement('div');new QRCode(d,{text:`${URL_}?verify=${encodeURIComponent(no)}`,width:220,height:220,correctLevel:QRCode.CorrectLevel.M});
  const q=d.querySelector('canvas').toDataURL();
  if(k.template_url){const at=(n,h,c='')=>`<div class="a ${c}" style="left:${POS[n].x}%;top:${POS[n].y}%">${h}</div>`;
-  return `<div class="cert tpl"><img class=bgi src="${e(k.template_url)}">${at('no','Nomor: '+e(no),'no')}${at('nama',e(p.nama),'nm')}${at('sub',(p.nip?'NIP. '+e(p.nip)+' \u{B7} ':'')+e(p.instansi))}${at('role','Peserta','rl')}${at('keg','<span style="font-size:15px;font-weight:400;color:#334155">dalam kegiatan</span><br>'+e(k.nama),'kg')}${at('tgl',tgl(k.tanggal)+' \u{B7} '+e(k.lokasi))}${at('qr',`<img src="${q}"><small>Pindai untuk verifikasi</small>`,'qb')}${at('ttd',`${e(k.lokasi)}, ${tgl(k.tanggal)}<br>${e(k.ttd_jabatan)}<br><br><br><b><u>${e(k.ttd_nama)}</u></b>${k.ttd_nip?'<br>NIP. '+e(k.ttd_nip):''}`,'sg')}</div>`}
+  return `<div class="cert tpl"><img class=bgi src="${e(k.template_url)}">${at('no','Nomor: '+e(no),'no')}${at('nama',e(p.nama),'nm')}${at('role','Peserta','rl')}${at('keg','<span style="font-size:15px;font-weight:400;color:#334155">dalam kegiatan</span><br>'+e(k.nama),'kg')}${at('tgl',tgl(k.tanggal)+' \u{B7} '+e(k.lokasi))}${at('qr',`<img src="${q}"><small>Pindai untuk verifikasi</small>`,'qb')}${at('ttd',`${e(k.lokasi)}, ${tgl(k.tanggal)}<br>${e(k.ttd_jabatan)}<br><br><br><b><u>${e(k.ttd_nama)}</u></b>${k.ttd_nip?'<br>NIP. '+e(k.ttd_nip):''}`,'sg')}</div>`}
  return `<div class=cert><div class=cb><div class=ct>SERTIFIKAT</div><div class=cs>Nomor: ${e(no)}</div><p>Diberikan kepada</p><h1>${e(p.nama)}</h1><p>${p.nip?'NIP. '+e(p.nip)+' \u{B7} ':''}${e(p.instansi)}</p><p>atas partisipasinya sebagai <b>Peserta</b> dalam kegiatan</p><h2>${e(k.nama)}</h2><p>${tgl(k.tanggal)} \u{B7} ${e(k.lokasi)}</p>
  <div class=cf><div><img src="${q}"><small>Pindai untuk verifikasi keaslian</small></div><div><p>${e(k.lokasi)}, ${tgl(k.tanggal)}</p><p>${e(k.ttd_jabatan)}</p><br><br><b><u>${e(k.ttd_nama)}</u></b>${k.ttd_nip?'<br>NIP. '+e(k.ttd_nip):''}</div></div></div></div>`;
 }
