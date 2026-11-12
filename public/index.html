@@ -128,7 +128,7 @@ async function hapus(sheet,row){const c=await Swal.fire({title:'Hapus data?',tex
 
 /* ===== Halaman publik ===== */
 const CARD={
-p:`<div class=ci>\u{1F469}\u{200D}\u{1F3EB}</div><h3>Presensi Peserta</h3><p class=sub>Pilih kegiatan lalu masukkan NIP/ID Anda</p><label>Kegiatan</label><select id=pk><option>Memuat...</option></select><label>NIK/ID Peserta</label><input id=pn placeholder="Masukkan NIK" onkeydown="event.key=='Enter'&&hadir()"><button class="btn w" onclick=hadir()>Hadir</button>`,
+p:`<div class=ci>\u{1F469}\u{200D}\u{1F3EB}</div><h3>Presensi Peserta</h3><p class=sub>Pilih kegiatan lalu masukkan NIK/ID Anda</p><label>Kegiatan</label><select id=pk><option>Memuat...</option></select><label>NIK/ID Peserta</label><input id=pn placeholder="Masukkan NIK" onkeydown="event.key=='Enter'&&hadir()"><button class="btn w" onclick=hadir()>Hadir</button>`,
 l:`<div class=ci>\u{1F6E1}\u{FE0F}</div><h3>Login Panitia</h3><p class=sub>Masuk untuk mengelola kegiatan &amp; sertifikat</p><label>Username</label><input id=lu autocomplete=username><label>Password</label><input id=lp type=password autocomplete=current-password onkeydown="event.key=='Enter'&&doLogin()"><button class="btn w" onclick=doLogin()>Masuk</button>`};
 async function landing(tab='h'){
  let g=$('#stg');const fresh=!g;
@@ -150,7 +150,7 @@ async function landing(tab='h'){
 }
 async function hadir(){
  const kid=$('#pk').value,nip=$('#pn').value.trim();
- if(!kid||!nip)return Swal.fire('Lengkapi data','Pilih kegiatan dan isi NIP/ID peserta.','warning');
+ if(!kid||!nip)return Swal.fire('Lengkapi data','Pilih kegiatan dan isi NIK/ID peserta.','warning');
  load();
  try{const r=await pub('checkin',{kid,nip});unload();Swal.fire({icon:'success',title:'Presensi Berhasil',html:`Terima kasih, <b>${e(r.nama)}</b><br><small>${r.waktu}</small>`});$('#pn').value=''}
  catch(x){unload();const m=msg(x);Swal.fire({icon:/sudah/.test(m)?'info':'error',title:/sudah/.test(m)?'Info':'Gagal',text:m})}
