@@ -1,27 +1,259 @@
 <!DOCTYPE html>
-<html lang="id"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Presensi Workshop Guru</title>
-<style>html,body{height:100%;margin:0;font-family:system-ui,sans-serif;background:#0b1437;color:#fff}
-body{display:flex;align-items:center;justify-content:center;text-align:center;padding:20px}
-iframe{position:fixed;inset:0;width:100%;height:100%;border:0;background:#fff}a{color:#93c5fd}</style></head>
-<body><p id="m">Membuka aplikasi presensi...</p>
-<script>
-/* 1) Ganti dengan alamat /exec dari Apps Script (Deploy > Manage deployments) */
-const GAS = 'https://script.google.com/macros/s/AKfycbywnbuqW1IQqPYdVYH0kn6aZoMsh8xaiD_TmjVUJehnbblcGLu9Y9yZMD4H2AoPDz4LGA/exec';
-/* 2) 'redirect' = pindah ke alamat Apps Script (paling stabil, disarankan)
-      'iframe'   = alamat workers.dev tetap tampil di browser */
-const MODE = 'redirect';
-
-const url = GAS + location.search + location.hash; /* ?k=... dan ?verify=... ikut diteruskan */
-const m = document.getElementById('m');
-if (GAS.indexOf('GANTI_DENGAN') > -1) {
-  m.textContent = 'Alamat Apps Script belum diisi pada file public/index.html.';
-} else if (MODE === 'iframe') {
-  const f = document.createElement('iframe'); f.src = url; f.allow = 'clipboard-write'; document.body.appendChild(f);
-} else {
-  location.replace(url);
-  m.innerHTML = 'Jika tidak berpindah otomatis, <a href="' + url + '">klik di sini</a>.';
+<html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#1e3a8a"><title>Presensi Workshop Guru</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root{--p:#1e40af;--bg:#f1f5f9;--m:#64748b;--b:#e2e8f0}
+*{box-sizing:border-box}body{margin:0;font:14px Inter,sans-serif;background:var(--bg);color:#0f172a}
+label{font-weight:600;font-size:12px;color:var(--m);display:block;text-align:left}
+input,select,textarea{width:100%;padding:10px 12px;border:1px solid var(--b);border-radius:10px;font:inherit;margin:4px 0 12px;background:#fff}
+.btn,.btn2{background:var(--p);color:#fff;border:0;border-radius:10px;padding:10px 16px;font:600 13px Inter;cursor:pointer}
+.btn2{background:#fff;color:var(--p);border:1px solid var(--p)}.w{width:100%}
+.land{min-height:100vh;display:grid;grid-template-columns:1.1fr 1fr}
+.hero{background:linear-gradient(135deg,#1e3a8a,#3b82f6);color:#fff;padding:60px;display:flex;flex-direction:column;justify-content:center}
+.hero h1{font-size:36px;margin:12px 0}.badge{font-size:12px;letter-spacing:2px;opacity:.85}
+.box{display:flex;align-items:center;justify-content:center;padding:24px}
+.card{background:#fff;border-radius:16px;padding:26px;box-shadow:0 8px 30px #0f172a18;width:100%;max-width:420px}
+.tabs{display:flex;background:var(--bg);border-radius:10px;padding:4px;margin-bottom:18px}
+.tabs button{flex:1;border:0;background:none;padding:9px;border-radius:8px;font:600 13px Inter;cursor:pointer;color:var(--m)}
+.tabs .on{background:#fff;color:var(--p);box-shadow:0 1px 4px #0001}
+.app{display:grid;grid-template-columns:230px 1fr;min-height:100vh}
+aside{background:#0f172a;padding:18px 12px;display:flex;flex-direction:column;gap:4px;position:sticky;top:0;height:100vh}
+aside a{color:#cbd5e1;padding:10px 12px;border-radius:10px;cursor:pointer}aside a:hover{background:#1e293b}
+aside a.on{background:var(--p);color:#fff}.logo{color:#fff;font-weight:700;font-size:17px;padding:8px 12px 18px}.sp{flex:1}
+main{padding:26px;min-width:0}.top{display:flex;justify-content:space-between;align-items:center}
+.top h2{margin:0}.chip{background:#fff;padding:6px 12px;border-radius:20px;border:1px solid var(--b);font-size:12px}
+.pn{background:#fff;border-radius:14px;padding:18px;margin-top:16px;box-shadow:0 1px 6px #0f172a0d}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-top:16px}
+.st{background:#fff;border-radius:14px;padding:18px;border-left:4px solid var(--p)}.st small{color:var(--m)}.st b{display:block;font-size:28px}
+.bar{display:grid;grid-template-columns:1fr 2fr 70px;gap:10px;align-items:center;margin:10px 0}
+.bar div{background:var(--b);border-radius:6px;height:10px}.bar i{display:block;height:100%;background:var(--p);border-radius:6px}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center}.row select,.row input{width:auto;margin:0;flex:1;min-width:160px}
+.tw{overflow:auto}table{width:100%;border-collapse:collapse}th{text-align:left;color:var(--m);font-size:12px;padding:8px;border-bottom:2px solid var(--b)}
+td{padding:10px 8px;border-bottom:1px solid var(--b);vertical-align:top}small,.mt{color:var(--m)}
+.ac{white-space:nowrap;text-align:right}.ac button{border:1px solid var(--b);background:#fff;border-radius:8px;padding:5px 10px;cursor:pointer;margin-left:4px}
+.ac .dg{color:#dc2626}.tag{padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600;background:#dcfce7;color:#166534}.tag.Selesai{background:#e2e8f0;color:#475569}
+.fm label{margin-top:4px}#print{display:none}
+#ld{display:none;position:fixed;inset:0;background:#0f172a88;z-index:1000;align-items:center;justify-content:center;gap:12px;color:#fff;font-weight:600}.sp2{width:26px;height:26px;border:3px solid #fff5;border-top-color:#fff;border-radius:50%;animation:rot .8s linear infinite}@keyframes rot{to{transform:rotate(360deg)}}
+.cert{width:297mm;height:210mm;padding:10mm;page-break-after:always;background:#fff;font-family:Georgia,serif;color:#1e293b}
+.cb{height:100%;border:2mm double #1e40af;padding:8mm 14mm;text-align:center;display:flex;flex-direction:column;justify-content:center}
+.ct{font-size:46px;letter-spacing:12px;color:#1e40af;font-weight:700}.cs{margin-bottom:10px;color:#64748b}
+.cb h1{font-size:40px;margin:6px 0;border-bottom:1px solid #94a3b8;display:inline-block;padding:0 30px;align-self:center}
+.cb h2{font-size:24px;margin:6px 0;color:#1e40af}.cb p{margin:5px 0;font-size:15px}
+.cf{display:flex;justify-content:space-between;align-items:flex-end;margin-top:22px;text-align:center}.cf img{width:28mm;height:28mm;display:block;margin:auto}.cf small{font-size:10px}
+@media print{body>*:not(#print){display:none!important}#print{display:block}@page{size:A4 landscape;margin:0}*{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+aside a span{margin-right:6px}
+@media(max-width:800px){
+input,select,textarea{font-size:16px}
+.land,.app{grid-template-columns:1fr}.hero{padding:28px 20px}.hero h1{font-size:25px}.box{padding:16px}
+aside{position:fixed;bottom:0;left:0;right:0;top:auto;height:auto;z-index:50;flex-direction:row;gap:0;overflow-x:auto;padding:6px 6px calc(6px + env(safe-area-inset-bottom));box-shadow:0 -4px 18px #0f172a30}
+.logo,.sp{display:none}aside a{display:flex;flex-direction:column;align-items:center;min-width:68px;font-size:11px;padding:7px 6px;white-space:nowrap}aside a span{margin:0 0 2px;font-size:19px}
+main{padding:14px 12px 96px}.chip{display:none}.pn{padding:12px}.bar{grid-template-columns:1fr}
+.row .btn,.row .btn2{flex:1}.row select,.row input{min-width:100%}
+table,thead,tbody,tr,td{display:block}thead{display:none}
+tr{border:1px solid var(--b);border-radius:12px;margin-bottom:10px;padding:6px 4px}
+td{border:0;padding:5px 8px;display:flex;justify-content:space-between;gap:12px;text-align:right}
+td::before{content:attr(data-l);color:var(--m);font-weight:600;font-size:12px;text-align:left;flex-shrink:0}
+td.ac{justify-content:flex-end;flex-wrap:wrap;gap:6px}td.ac::before{content:none}.ac button{padding:8px 12px;margin:0}
 }
-</script></body></html>
 
+.stage{min-height:100vh;position:relative;overflow:hidden;background:radial-gradient(circle at 30% 20%,#1e3a8a,#0b1437 70%);perspective:1200px;display:flex;align-items:center;justify-content:center;color:#fff}
+.bg{position:absolute;inset:0;perspective:800px;transition:filter 1.6s}.st-l .bg{filter:hue-rotate(55deg)}
+.o{position:absolute;border-radius:50%;filter:blur(60px);opacity:.55;animation:fl 12s ease-in-out infinite alternate}
+.o1{width:420px;height:420px;background:#3b82f6;top:-100px;left:-80px}.o2{width:360px;height:360px;background:#06b6d4;bottom:-80px;right:-60px;animation-delay:-4s}.o3{width:260px;height:260px;background:#8b5cf6;top:40%;left:55%;animation-delay:-8s}
+@keyframes fl{to{transform:translate(40px,-30px) scale(1.15)}}
+.grid{position:absolute;bottom:-25%;left:-50%;width:200%;height:80%;background-image:linear-gradient(#ffffff26 1px,transparent 1px),linear-gradient(90deg,#ffffff26 1px,transparent 1px);background-size:60px 60px;transform:rotateX(68deg);animation:mv 6s linear infinite;-webkit-mask-image:linear-gradient(transparent,#000);mask-image:linear-gradient(transparent,#000)}
+@keyframes mv{to{background-position:0 60px}}
+.hero3d{position:absolute;z-index:1;width:min(760px,92vw);text-align:center;transform-style:preserve-3d;transform:translate3d(0,0,0) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));transition:transform 1.4s cubic-bezier(.22,1,.36,1),opacity 1.4s,filter 1.4s}
+.hero3d h1{font-size:clamp(28px,5vw,48px);margin:14px 0;line-height:1.15;text-shadow:0 8px 30px #0006}.hero3d p{font-size:16px;opacity:.85;max-width:560px;margin:0 auto}
+.st-p .hero3d,.st-l .hero3d{transform:translate3d(0,-8vh,-320px) scale(1.45) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));opacity:.2;filter:blur(2px);transition-duration:2s}
+.choose{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-top:32px;transition:opacity .6s,transform .8s}
+.st-p .choose,.st-l .choose{opacity:0;transform:translateY(24px);pointer-events:none}
+.ch{background:#ffffff1f;border:1px solid #ffffff40;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);color:#fff;border-radius:18px;padding:18px 28px;min-width:190px;cursor:pointer;font:inherit;display:flex;flex-direction:column;gap:4px;align-items:center;transition:transform .3s,background .3s}
+.ch:hover{transform:translateY(-4px) scale(1.03);background:#ffffff38}.ch span{font-size:30px}.ch b{font-size:16px}.ch small{color:#dbeafe}
+.lc{position:absolute;z-index:2;inset:0;margin:auto;height:fit-content;width:min(420px,92vw);opacity:0;transform:translateY(40px) scale(.92);pointer-events:none;transition:opacity .4s,transform .4s}
+.st-p .lc,.st-l .lc{opacity:1;transform:none;pointer-events:auto;transition:opacity .9s .5s,transform 1s .5s cubic-bezier(.22,1,.36,1)}
+.lc .card{max-width:none;color:#0f172a;box-shadow:0 30px 80px #0008}.lc h3{margin:10px 0 2px;font-size:20px;text-align:center}.sub{color:var(--m);text-align:center;margin:0 0 16px;font-size:13px}
+.ci{width:56px;height:56px;border-radius:50%;margin:0 auto;display:flex;align-items:center;justify-content:center;font-size:26px;background:linear-gradient(135deg,#dbeafe,#e0e7ff)}
+.back{display:block;text-align:center;margin-top:16px;color:#fff;opacity:.85;cursor:pointer}.back:hover{opacity:1}
+@media(max-width:800px){.ch{min-width:140px;padding:14px 18px}.st-p .hero3d,.st-l .hero3d{transform:translate3d(0,-10vh,-260px) scale(1.3)}}
+
+*{-webkit-tap-highlight-color:transparent}body{overscroll-behavior-y:contain}button:active,.ch:active{transform:scale(.96)}
+main>*:not(.top){animation:up .4s both}@keyframes up{from{opacity:0;transform:translateY(14px)}}
+.av,.fab{display:none}
+.sheet{border-radius:22px 22px 0 0!important;margin:0!important;text-align:left!important;padding:18px 18px calc(18px + env(safe-area-inset-bottom))!important}
+.mh{display:flex;gap:12px;align-items:center;margin-bottom:6px}.av2{width:44px;height:44px;border-radius:50%;background:var(--p);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700}
+.mi{display:block;width:100%;text-align:left;border:0;background:#f1f5f9;border-radius:12px;padding:14px;margin-top:8px;font:600 14px Inter;cursor:pointer}.mi.dg{color:#dc2626}
+@media(max-width:800px){
+.top{position:sticky;top:0;z-index:40;margin:-14px -12px 14px;padding:calc(14px + env(safe-area-inset-top)) 16px 16px;background:linear-gradient(135deg,#1e3a8a,#3b82f6);color:#fff;border-radius:0 0 24px 24px;box-shadow:0 6px 20px #1e3a8a40}
+.top h2{font-size:19px}
+.av{display:flex;width:38px;height:38px;border-radius:50%;border:2px solid #ffffff80;background:#ffffff26;color:#fff;font:700 15px Inter;align-items:center;justify-content:center}
+aside{background:#fff;border-top:1px solid var(--b);justify-content:space-around;overflow:visible}
+aside a.x{display:none}aside a{flex:1;min-width:0;color:#64748b}
+aside a.on{background:none;color:var(--p);font-weight:600}
+aside a span{padding:3px 18px;border-radius:14px;transition:.25s}aside a.on span{background:#dbeafe}
+.fab{display:flex;position:fixed;right:18px;bottom:calc(86px + env(safe-area-inset-bottom));width:56px;height:56px;border-radius:50%;border:0;background:linear-gradient(135deg,#1e40af,#3b82f6);color:#fff;font-size:28px;align-items:center;justify-content:center;box-shadow:0 8px 22px #1e40af66;z-index:60;cursor:pointer}
+.add{display:none}
+.stats{grid-template-columns:1fr 1fr}.st{padding:14px}.st b{font-size:24px}
+.pn{border-radius:18px}tr{box-shadow:0 1px 4px #0f172a0f}
+}
+.pw{position:relative}.pw input{padding-right:46px}.eye{position:absolute;right:6px;top:4px;height:40px;width:40px;border:0;background:none;cursor:pointer;font-size:18px;opacity:.7}.eye:hover{opacity:1}
+.cert.tpl{position:relative;padding:0;overflow:hidden}.bgi{position:absolute;inset:0;width:100%;height:100%}
+.a{position:absolute;transform:translate(-50%,-50%);width:80%;text-align:center;font-size:15px}.a.no{font-size:13px;color:#475569}.a.nm{font-size:38px;font-weight:700}.a.rl{font-size:26px;font-weight:700;color:#1e3a8a}.a.kg{font-size:22px;font-weight:700;color:#1e40af}.a.sg{width:30%}
+.a.qb{width:auto}.qb img{width:26mm;height:26mm;display:block;margin:auto}.qb small{display:block;font-size:9px;color:#475569}
+</style></head>
+<body><div id="app"></div><div id="print"></div>
+<script>
+const API='https://script.google.com/macros/s/AKfycbywnbuqW1IQqPYdVYH0kn6aZoMsh8xaiD_TmjVUJehnbblcGLu9Y9yZMD4H2AoPDz4LGA/exec';
+const URL_=location.origin+location.pathname.replace(/index\.html$/,''),Q=Object.fromEntries(new URLSearchParams(location.search));
+const $=s=>document.querySelector(s),app=$('#app');
+const e=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const ss={get:k=>{try{return sessionStorage.getItem(k)}catch(_){return null}},set:(k,v)=>{try{v==null?sessionStorage.removeItem(k):sessionStorage.setItem(k,v)}catch(_){}}};
+let T=ss.get('t'),U=JSON.parse(ss.get('u')||'null'),D={},V='dash',SK='';
+const tgl=s=>{const d=new Date(s);return isNaN(d)?s:d.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})};
+const toast=(t,i='success')=>Swal.fire({toast:true,position:'top-end',icon:i,title:t,timer:2200,showConfirmButton:false});
+const rpc=(fn,a,d)=>tmo(fetch(API,{method:'POST',body:JSON.stringify({fn,t:T,a,d})}).then(r=>r.text()).then(t=>{let j;try{j=JSON.parse(t)}catch(_){throw new Error('Server tidak valid. Pastikan Web App Apps Script diatur "Anyone".')}if(!j.ok)throw new Error(j.error);return j.data}));
+const pub=(a,d)=>rpc('pub',a,d);
+const call=(a,d)=>rpc('api',a,d);
+const msg=x=>(x.message||String(x)).replace(/^Error:\s*/,'');
+const load=()=>{let o=$('#ld');if(!o){o=document.createElement('div');o.id='ld';o.innerHTML='<div class=sp2></div><span>Memproses...</span>';document.body.appendChild(o)}o.style.display='flex'};
+const unload=()=>{const o=$('#ld');if(o)o.style.display='none'};
+const tmo=(p,ms=45000)=>Promise.race([p,new Promise((_,no)=>setTimeout(()=>no(new Error('Server tidak merespon, silakan coba lagi')),ms))]);
+async function go(a,d,ok){load();try{const r=await call(a,d);unload();if(ok)toast(ok);return r||{ok:1}}catch(x){unload();const m=msg(x);await Swal.fire('Gagal',m,'error');if(/Sesi/.test(m))logout();return null}}
+async function refresh(ok){const r=await go('all',{},ok);if(r){D=r;render()}return r}
+async function save(sheet,obj){if(obj&&await go('save',{sheet,obj},'Data tersimpan'))refresh()}
+async function hapus(sheet,row){const c=await Swal.fire({title:'Hapus data?',text:'Tindakan ini tidak dapat dibatalkan.',icon:'warning',showCancelButton:true,confirmButtonColor:'#dc2626',confirmButtonText:'Ya, hapus',cancelButtonText:'Batal'});if(c.isConfirmed&&await go('del',{sheet,row},'Terhapus'))refresh()}
+
+/* ===== Halaman publik ===== */
+const CARD={
+p:`<div class=ci>\u{1F469}\u{200D}\u{1F3EB}</div><h3>Presensi Peserta</h3><p class=sub>Pilih kegiatan lalu masukkan NIP/ID Anda</p><label>Kegiatan</label><select id=pk><option>Memuat...</option></select><label>NIP / ID Peserta</label><input id=pn placeholder="Masukkan NIP / ID" onkeydown="event.key=='Enter'&&hadir()"><button class="btn w" onclick=hadir()>Hadir</button>`,
+l:`<div class=ci>\u{1F6E1}\u{FE0F}</div><h3>Login Panitia</h3><p class=sub>Masuk untuk mengelola kegiatan &amp; sertifikat</p><label>Username</label><input id=lu autocomplete=username><label>Password</label><input id=lp type=password autocomplete=current-password onkeydown="event.key=='Enter'&&doLogin()"><button class="btn w" onclick=doLogin()>Masuk</button>`};
+async function landing(tab='h'){
+ let g=$('#stg');const fresh=!g;
+ if(fresh){
+  app.innerHTML=`<div class="stage st-h" id=stg><div class=bg><i class="o o1"></i><i class="o o2"></i><i class="o o3"></i><div class=grid></div></div>
+  <div class=hero3d><div class=badge>BINTEK &amp; WORKSHOP GURU</div><h1>Sistem Presensi &amp; Sertifikat Digital</h1><p>Presensi cepat, rekap otomatis, dan sertifikat ber-QR yang dapat diverifikasi keasliannya.</p>
+  <div class=choose><button class=ch onclick="landing('p')"><span>\u{1F469}\u{200D}\u{1F3EB}</span><b>Peserta</b><small>Presensi kegiatan</small></button><button class=ch onclick="landing('l')"><span>\u{1F6E1}\u{FE0F}</span><b>Panitia</b><small>Kelola &amp; cetak sertifikat</small></button></div></div>
+  <div class=lc><div class=card id=lcard></div><a class=back onclick="landing('h')">\u{2190} Kembali</a></div></div>`;
+  g=$('#stg');
+  g.onmousemove=ev=>{g.style.setProperty('--ry',((ev.clientX/innerWidth-.5)*8)+'deg');g.style.setProperty('--rx',(-(ev.clientY/innerHeight-.5)*6)+'deg')};
+ }
+ if(tab!='h'){
+  $('#lcard').innerHTML=CARD[tab];
+  if(matchMedia('(hover:hover)').matches)setTimeout(()=>{const f=$(tab=='p'?'#pn':'#lu');if(f)f.focus({preventScroll:true})},1400);
+ }
+ const sw=()=>{g.className='stage st-'+tab};
+ fresh?setTimeout(sw,60):sw();
+ if(tab=='p'){try{const l=await pub('list');$('#pk').innerHTML=l.length?l.map(k=>`<option value="${k.id}" ${k.id==Q.k?'selected':''}>${e(k.nama)} - ${tgl(k.tanggal)}</option>`).join(''):'<option value="">Tidak ada kegiatan aktif</option>'}catch(x){}}
+}
+async function hadir(){
+ const kid=$('#pk').value,nip=$('#pn').value.trim();
+ if(!kid||!nip)return Swal.fire('Lengkapi data','Pilih kegiatan dan isi NIP/ID peserta.','warning');
+ load();
+ try{const r=await pub('checkin',{kid,nip});unload();Swal.fire({icon:'success',title:'Presensi Berhasil',html:`Terima kasih, <b>${e(r.nama)}</b><br><small>${r.waktu}</small>`});$('#pn').value=''}
+ catch(x){unload();const m=msg(x);Swal.fire({icon:/sudah/.test(m)?'info':'error',title:/sudah/.test(m)?'Info':'Gagal',text:m})}
+}
+async function doLogin(){
+ const u=$('#lu').value,p=$('#lp').value;if(!u||!p)return Swal.fire('Lengkapi data','Username dan password wajib diisi.','warning');
+ load();try{const r=await pub('login',{u,p});unload();T=r.token;U=r.user;ss.set('t',T);ss.set('u',JSON.stringify(U));await refresh('Selamat datang, '+U.nama)}
+ catch(x){unload();Swal.fire('Login gagal',msg(x),'error')}
+}
+function logout(){T=null;U=null;ss.set('t',null);ss.set('u',null);landing('l')}
+async function verifyView(){
+ app.innerHTML=`<div class=land><div class=box style="grid-column:1/-1"><div class=card id=vc style="text-align:center">Memeriksa sertifikat...</div></div></div>`;
+ try{const r=await pub('verify',{no:Q.verify});$('#vc').innerHTML=r.valid?`<div style="font-size:54px">\u{2705}</div><h2>Sertifikat Valid</h2><p><b>${e(r.nama)}</b><br>${e(r.instansi)}</p><p>${e(r.kegiatan)}<br><small>${tgl(r.tanggal)}</small></p><small>No. ${e(r.nomor)}</small>`:`<div style="font-size:54px">\u{274C}</div><h2>Tidak Ditemukan</h2><p class=mt>Nomor sertifikat tidak terdaftar.</p>`}
+ catch(x){$('#vc').textContent=msg(x)}
+}
+
+/* ===== Aplikasi panitia ===== */
+const NAV=[['dash','Dashboard','\u{1F4CA}'],['keg','Kegiatan','\u{1F5D3}\u{FE0F}'],['pes','Peserta','\u{1F469}\u{200D}\u{1F3EB}'],['pre','Presensi','\u{2705}'],['ser','Sertifikat','\u{1F393}'],['usr','Pengguna','\u{1F464}','admin']];
+function render(){
+ const nav=NAV.filter(n=>!n[3]||n[3]===U.role).map(n=>`<a class="${V==n[0]?'on':''} ${n[0]=='usr'?'x':''}" onclick="V='${n[0]}';render()"><span>${n[2]}</span>${n[1]}</a>`).join('');
+ app.innerHTML=`<div class=app><aside><div class=logo>\u{1F393} Presensi Workshop</div>${nav}<div class=sp></div><a class=x onclick=pwd()><span>\u{1F511}</span>Password</a><a class=x onclick=logout()><span>\u{1F6AA}</span>Keluar</a></aside><main><div class=top><h2>${NAV.find(n=>n[0]==V)[1]}</h2><span class=chip>${e(U.nama)} \u{B7} ${U.role}</span><button class=av onclick=menu()>${e((U.nama||'?')[0]).toUpperCase()}</button></div>${VIEWS[V]()}</main>${ADD[V]?`<button class=fab onclick="${ADD[V]}">\u{FF0B}</button>`:''}</div>`;
+ document.querySelectorAll('table').forEach(t=>{const h=[...t.querySelectorAll('th')].map(x=>x.textContent);t.querySelectorAll('tbody tr').forEach(w=>[...w.children].forEach((c,i)=>c.dataset.l=h[i]||''))});
+}
+const ADD={keg:'fkeg()',pes:'fpes()',pre:'manual()',usr:'fusr()'};
+const tbl=(h,r)=>`<div class=tw><table><thead><tr>${h.map(x=>`<th>${x}</th>`).join('')}</tr></thead><tbody>${r.join('')||'<tr><td colspan=9 class=mt>Belum ada data</td></tr>'}</tbody></table></div>`;
+const ksel=()=>{SK=SK||(D.kegiatan[0]||{}).id||'';return `<select onchange="SK=this.value;render()">${D.kegiatan.map(k=>`<option value="${k.id}" ${k.id==SK?'selected':''}>${e(k.nama)}</option>`).join('')}</select>`};
+const hadirList=()=>D.presensi.filter(p=>p.kegiatan_id===SK);
+const VIEWS={
+ dash:()=>{const td=new Date().toLocaleDateString('sv-SE',{timeZone:'Asia/Jakarta'});
+  const st=[['Kegiatan',D.kegiatan.length],['Peserta Terdaftar',D.peserta.length],['Presensi Hari Ini',D.presensi.filter(p=>p.waktu.startsWith(td)).length],['Sertifikat Diterbitkan',D.sertifikat.length]];
+  return `<div class=stats>${st.map(s=>`<div class=st><small>${s[0]}</small><b>${s[1]}</b></div>`).join('')}</div><div class=pn><h3 style="margin-top:0">Kehadiran per Kegiatan</h3>${D.kegiatan.map(k=>{const n=D.presensi.filter(p=>p.kegiatan_id===k.id).length,pc=D.peserta.length?Math.min(100,Math.round(n/D.peserta.length*100)):0;return `<div class=bar><span>${e(k.nama)}</span><div><i style="width:${pc}%"></i></div><em>${n} hadir</em></div>`}).join('')||'<p class=mt>Belum ada kegiatan.</p>'}</div>`},
+ keg:()=>`<div class=pn><div class=row><button class="btn add" onclick="fkeg()">+ Tambah Kegiatan</button></div>${tbl(['Kegiatan','Tanggal','Lokasi','Status',''],D.kegiatan.map(k=>`<tr><td><b>${e(k.nama)}</b><br><small>${e(k.penyelenggara)}</small></td><td>${tgl(k.tanggal)}</td><td>${e(k.lokasi)}</td><td><span class="tag ${k.status}">${k.status}</span></td><td class=ac><button onclick="qr('${k.id}')">QR Presensi</button><button onclick="fkeg('${k.id}')">Edit</button><button class=dg onclick="hapus('Kegiatan',${k._row})">Hapus</button></td></tr>`))}</div>`,
+ pes:()=>`<div class=pn><div class=row><input placeholder="Cari nama / NIP / instansi..." oninput="cari(this.value)"><button class="btn add" onclick="fpes()">+ Tambah</button><button class=btn2 onclick="imp()">Impor dari Excel</button></div>${tbl(['Nama','NIP/ID','Instansi','Email',''],D.peserta.map(p=>`<tr class=pr><td>${e(p.nama)}</td><td>${e(p.nip)}</td><td>${e(p.instansi)}</td><td>${e(p.email)}</td><td class=ac><button onclick="fpes('${p.id}')">Edit</button><button class=dg onclick="hapus('Peserta',${p._row})">Hapus</button></td></tr>`))}</div>`,
+ pre:()=>`<div class=pn><div class=row>${ksel()}<button class="btn add" onclick=manual()>+ Presensi Manual</button><button class=btn2 onclick=csv()>\u{2B07} Unduh CSV</button></div>${tbl(['#','Waktu','Nama','Instansi',''],hadirList().map((p,i)=>`<tr><td>${i+1}</td><td>${p.waktu}</td><td>${e(p.nama)}</td><td>${e(p.instansi)}</td><td class=ac><button class=dg onclick="hapus('Presensi',${p._row})">Hapus</button></td></tr>`))}</div>`,
+ ser:()=>{const h=hadirList();return `<div class=pn><div class=row>${ksel()}<button class=btn onclick="cetak(hadirList().map(p=>p.peserta_id))">\u{1F5A8} Cetak Semua (${h.length})</button></div><p class=mt>Sertifikat hanya untuk peserta yang tercatat hadir. QR pada sertifikat mengarah ke halaman verifikasi keaslian.</p>${tbl(['Nama','Instansi','No. Sertifikat',''],h.map(p=>{const s=D.sertifikat.find(x=>x.kegiatan_id===SK&&x.peserta_id===p.peserta_id);return `<tr><td>${e(p.nama)}</td><td>${e(p.instansi)}</td><td>${s?e(s.nomor):'<small>Belum terbit</small>'}</td><td class=ac><button onclick="cetak(['${p.peserta_id}'])">Cetak</button></td></tr>`}))}</div>`},
+ usr:()=>`<div class=pn><div class=row><button class="btn add" onclick="fusr()">+ Tambah Pengguna</button></div>${tbl(['Username','Nama','Peran',''],D.users.map(u=>`<tr><td>${e(u.username)}</td><td>${e(u.nama)}</td><td>${u.role}</td><td class=ac><button onclick="fusr(${u._row})">Edit</button><button class=dg onclick="hapus('Users',${u._row})">Hapus</button></td></tr>`))}</div>`
+};
+function menu(){Swal.fire({position:'bottom',width:'100%',showConfirmButton:false,showCloseButton:true,customClass:{popup:'sheet'},
+ html:`<div class=mh><div class=av2>${e((U.nama||'?')[0]).toUpperCase()}</div><div><b>${e(U.nama)}</b><br><small>${U.role}</small></div></div>${U.role=='admin'?`<button class=mi onclick="Swal.close();V='usr';render()">\u{1F464} Kelola Pengguna</button>`:''}<button class=mi onclick="Swal.close();pwd()">\u{1F511} Ganti Password</button><button class="mi dg" onclick="Swal.close();logout()">\u{1F6AA} Keluar</button>`})}
+function cari(q){q=q.toLowerCase();document.querySelectorAll('.pr').forEach(r=>r.style.display=r.textContent.toLowerCase().includes(q)?'':'none')}
+
+/* ===== Form ===== */
+async function form(title,fs,v={}){
+ const r=await Swal.fire({title,width:520,showCancelButton:true,confirmButtonText:'Simpan',cancelButtonText:'Batal',confirmButtonColor:'#1e40af',customClass:{htmlContainer:'fm'},
+  html:fs.map(f=>`<label>${f.l}</label>`+(f.o?`<select id=f_${f.k}>${f.o.map(o=>`<option ${v[f.k]==o?'selected':''}>${o}</option>`).join('')}</select>`:`<input id=f_${f.k} type=${f.t||'text'} value="${e(v[f.k])}">`)).join(''),
+  preConfirm:()=>{const o={};for(const f of fs){o[f.k]=$('#f_'+f.k).value.trim();if(f.r&&!o[f.k])return Swal.showValidationMessage(f.l+' wajib diisi')}return o}});
+ return r.isConfirmed?{...v,...r.value}:null;
+}
+async function fkeg(id){const v=D.kegiatan.find(k=>k.id===id)||{status:'Aktif'};
+ save('Kegiatan',await form(id?'Edit Kegiatan':'Tambah Kegiatan',[{k:'nama',l:'Nama Kegiatan',r:1},{k:'tanggal',l:'Tanggal',t:'date',r:1},{k:'lokasi',l:'Lokasi',r:1},{k:'penyelenggara',l:'Penyelenggara'},{k:'status',l:'Status',o:['Aktif','Selesai']},{k:'ttd_nama',l:'Nama Penandatangan Sertifikat'},{k:'ttd_jabatan',l:'Jabatan Penandatangan'},{k:'template_url',l:'URL Gambar Template Sertifikat (opsional, dari GitHub)'}],v))}
+async function fpes(id){const v=D.peserta.find(p=>p.id===id)||{};
+ save('Peserta',await form(id?'Edit Peserta':'Tambah Peserta',[{k:'nama',l:'Nama Lengkap (beserta gelar)',r:1},{k:'nip',l:'NIP / ID Peserta',r:1},{k:'instansi',l:'Instansi / Sekolah'},{k:'email',l:'Email',t:'email'}],v))}
+async function fusr(row){const v=D.users.find(u=>u._row===row)||{role:'panitia'};
+ const o=await form(row?'Edit Pengguna':'Tambah Pengguna',[{k:'username',l:'Username',r:1},{k:'nama',l:'Nama',r:1},{k:'role',l:'Peran',o:['admin','panitia']},{k:'password',l:row?'Password baru (kosongkan jika tidak diubah)':'Password',t:'password',r:!row}],v);save('Users',o)}
+async function pwd(){const o=await form('Ganti Password',[{k:'p',l:'Password Baru (min. 6 karakter)',t:'password',r:1}]);if(o&&await go('pwd',{p:o.p},'Password diperbarui')){}}
+async function imp(){
+ const r=await Swal.fire({title:'Impor Peserta',width:600,showCancelButton:true,confirmButtonText:'Impor',cancelButtonText:'Batal',confirmButtonColor:'#1e40af',
+  html:'<p style="font-size:13px;color:#64748b">Salin dari Excel/Sheets (kolom: <b>Nama, NIP, Instansi, Email</b>), tempel di bawah. Satu peserta per baris.</p><textarea id=ia rows=9 placeholder="Budi Santoso, S.Pd[tab]198001012005011001[tab]SDN 1 Cirebon[tab]budi@mail.com"></textarea>',
+  preConfirm:()=>$('#ia').value});
+ if(!r.isConfirmed||!r.value.trim())return;
+ const list=r.value.split('\n').map(l=>l.split(/\t|;/).map(x=>x.trim())).filter(c=>c[0]).map(c=>({nama:c[0],nip:c[1],instansi:c[2],email:c[3]}));
+ const x=await go('import',{list});if(x){await Swal.fire('Selesai',`${x.n} peserta ditambahkan, ${x.skip} dilewati (kosong/duplikat).`,'success');refresh()}
+}
+async function manual(){
+ const hs=new Set(hadirList().map(p=>p.peserta_id)),ps=D.peserta.filter(p=>!hs.has(p.id));
+ if(!SK)return Swal.fire('Info','Buat kegiatan terlebih dahulu.','info');
+ if(!ps.length)return Swal.fire('Info','Semua peserta sudah hadir / belum ada peserta.','info');
+ const r=await Swal.fire({title:'Presensi Manual',input:'select',inputOptions:Object.fromEntries(ps.map(p=>[p.id,p.nama+' ('+p.nip+')'])),inputPlaceholder:'Pilih peserta',showCancelButton:true,confirmButtonText:'Hadirkan',cancelButtonText:'Batal',confirmButtonColor:'#1e40af',inputValidator:v=>!v&&'Pilih peserta'});
+ if(r.isConfirmed&&await go('manual',{kid:SK,pid:r.value},'Presensi dicatat'))refresh();
+}
+function qr(id){const l=`${URL_}?k=${id}`;
+ Swal.fire({title:'QR Presensi',html:`<div id=qrb style="display:flex;justify-content:center;margin:10px"></div><input readonly value="${l}" onclick=this.select()><small>Tampilkan QR ini di lokasi kegiatan agar peserta memindai &amp; presensi mandiri.</small>`,didOpen:()=>new QRCode($('#qrb'),{text:l,width:220,height:220}),confirmButtonColor:'#1e40af'})}
+function csv(){const k=D.kegiatan.find(x=>x.id===SK);if(!k)return;
+ const L=[['No','Waktu','Nama','Instansi'],...hadirList().map((p,i)=>[i+1,p.waktu,p.nama,p.instansi])].map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+ const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+L],{type:'text/csv'}));a.download='presensi-'+k.nama.replace(/\W+/g,'_')+'.csv';a.click()}
+
+/* ===== Sertifikat ===== */
+/* Posisi teks di atas template (persen dari lebar/tinggi kertas; titik tengah elemen). Sesuaikan dengan desain Anda. */
+const POS={no:{x:50,y:27.5},nama:{x:50,y:38.5},sub:{x:50,y:45},role:{x:50,y:53.5},keg:{x:50,y:61},tgl:{x:50,y:67.5},qr:{x:14,y:79},ttd:{x:72,y:77}};
+function cert(k,p,no){
+ const d=document.createElement('div');new QRCode(d,{text:`${URL_}?verify=${encodeURIComponent(no)}`,width:220,height:220,correctLevel:QRCode.CorrectLevel.M});
+ const q=d.querySelector('canvas').toDataURL();
+ if(k.template_url){const at=(n,h,c='')=>`<div class="a ${c}" style="left:${POS[n].x}%;top:${POS[n].y}%">${h}</div>`;
+  return `<div class="cert tpl"><img class=bgi src="${e(k.template_url)}">${at('no','Nomor: '+e(no),'no')}${at('nama',e(p.nama),'nm')}${at('sub',(p.nip?'NIP. '+e(p.nip)+' \u{B7} ':'')+e(p.instansi))}${at('role','Peserta','rl')}${at('keg','<span style="font-size:15px;font-weight:400;color:#334155">dalam kegiatan</span><br>'+e(k.nama),'kg')}${at('tgl',tgl(k.tanggal)+' \u{B7} '+e(k.lokasi))}${at('qr',`<img src="${q}"><small>Pindai untuk verifikasi</small>`,'qb')}${at('ttd',`${e(k.lokasi)}, ${tgl(k.tanggal)}<br>${e(k.ttd_jabatan)}<br><br><br><b><u>${e(k.ttd_nama)}</u></b>`,'sg')}</div>`}
+ return `<div class=cert><div class=cb><div class=ct>SERTIFIKAT</div><div class=cs>Nomor: ${e(no)}</div><p>Diberikan kepada</p><h1>${e(p.nama)}</h1><p>${p.nip?'NIP. '+e(p.nip)+' \u{B7} ':''}${e(p.instansi)}</p><p>atas partisipasinya sebagai <b>Peserta</b> dalam kegiatan</p><h2>${e(k.nama)}</h2><p>${tgl(k.tanggal)} \u{B7} ${e(k.lokasi)}</p>
+ <div class=cf><div><img src="${q}"><small>Pindai untuk verifikasi keaslian</small></div><div><p>${e(k.lokasi)}, ${tgl(k.tanggal)}</p><p>${e(k.ttd_jabatan)}</p><br><br><b><u>${e(k.ttd_nama)}</u></b></div></div></div></div>`;
+}
+async function cetak(ids){
+ const k=D.kegiatan.find(x=>x.id===SK);if(!k||!ids.length)return Swal.fire('Info','Belum ada peserta hadir.','info');
+ const m=await go('certs',{kid:SK,ids});if(!m)return;
+ $('#print').innerHTML=ids.map(id=>cert(k,D.peserta.find(p=>p.id===id),m[id])).join('');
+ await Swal.fire({icon:'success',title:'Sertifikat siap',text:'Pilih printer atau "Simpan sebagai PDF" pada dialog cetak (Layout: Landscape, margin None).',confirmButtonText:'Buka Dialog Cetak',confirmButtonColor:'#1e40af'});
+ await Promise.all([...document.querySelectorAll('#print img')].map(i=>i.complete?1:new Promise(z=>{i.onload=i.onerror=z})));
+ window.print();refresh();
+}
+
+/* ===== Tampilkan / sembunyikan password ===== */
+new MutationObserver(()=>document.querySelectorAll('input[type=password]:not([data-eye])').forEach(i=>{
+ i.dataset.eye=1;const w=document.createElement('div');w.className='pw';i.parentNode.insertBefore(w,i);w.appendChild(i);
+ const b=document.createElement('button');b.type='button';b.className='eye';b.textContent='\u{1F441}\u{FE0F}';b.title='Tampilkan password';b.setAttribute('aria-label','Tampilkan password');
+ b.onmousedown=ev=>ev.preventDefault();
+ b.onclick=()=>{const h=i.type=='password';i.type=h?'text':'password';b.textContent=h?'\u{1F648}':'\u{1F441}\u{FE0F}';b.title=h?'Sembunyikan password':'Tampilkan password'};
+ w.appendChild(b)})).observe(document.body,{childList:true,subtree:true});
+
+/* ===== Mulai ===== */
+if(Q.verify)verifyView();else if(T&&U)refresh();else landing(Q.k?'p':'h');
+</script></body></html>
